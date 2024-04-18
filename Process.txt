@@ -1,0 +1,18 @@
+let
+    Origen = Excel.Workbook(File.Contents("C:\Users\LUIS ANTONIO\Downloads\BD-CLIENTES-powerbi_eltiotech.xlsx"), null, true),
+    Registros_Sheet = Origen{[Item="Registros",Kind="Sheet"]}[Data],
+    #"Encabezados promovidos" = Table.PromoteHeaders(Registros_Sheet, [PromoteAllScalars=true]),
+    #"Tipo cambiado" = Table.TransformColumnTypes(#"Encabezados promovidos",{{"ID", type text}, {"Nombre completo", type text}, {"Fecha de nacimiento", type date}, {"Edad", type number}, {"Dirección", type text}, {"Ciudad", type text}, {"Teléfono", type text}, {"Correo electrónico", type text}, {"Fecha de alta", type datetime}, {"Grupo de clientes", type text}}),
+    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Fecha de nacimiento"}),
+    #"Tipo cambiado1" = Table.TransformColumnTypes(#"Columnas quitadas",{{"Edad", Int64.Type}}),
+    #"Columnas quitadas1" = Table.RemoveColumns(#"Tipo cambiado1",{"Correo electrónico"}),
+    #"Año insertado" = Table.AddColumn(#"Columnas quitadas1", "Año", each Date.Year([Fecha de alta]), Int64.Type),
+    #"Columnas con nombre cambiado" = Table.RenameColumns(#"Año insertado",{{"Año", "Año de alta"}}),
+    #"Columnas quitadas2" = Table.RemoveColumns(#"Columnas con nombre cambiado",{"Fecha de alta"}),
+    #"Valor reemplazado" = Table.ReplaceValue(#"Columnas quitadas2","F","Frecuente",Replacer.ReplaceText,{"Grupo de clientes"}),
+    #"Valor reemplazado1" = Table.ReplaceValue(#"Valor reemplazado","O","Ocasional",Replacer.ReplaceText,{"Grupo de clientes"}),
+    #"Valor reemplazado2" = Table.ReplaceValue(#"Valor reemplazado1","R","Regular",Replacer.ReplaceText,{"Grupo de clientes"}),
+    #"Valor reemplazado3" = Table.ReplaceValue(#"Valor reemplazado2","E","Embajador",Replacer.ReplaceText,{"Grupo de clientes"}),
+    #"Tipo cambiado2" = Table.TransformColumnTypes(#"Valor reemplazado3",{{"Año de alta", type text}})
+in
+    #"Tipo cambiado2"
